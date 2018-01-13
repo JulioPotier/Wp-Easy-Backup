@@ -7,7 +7,7 @@ Script URI: http://www.boiteaweb.fr/WPEB
 Author URI: http://www.boiteaweb.fr
 Author: Julio Potier
 Infos: based on Jonathan Buttigieg project https://github.com/GeekPress/WP-BackUp/
-Version: 1.0
+Version: 1.1
 Tags: wordpress, security, admin, db
 License: GPL
 **********************************************/
