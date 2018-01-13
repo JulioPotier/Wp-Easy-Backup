@@ -7,7 +7,7 @@ Script URI: http://www.boiteaweb.fr/WPEB
 Author URI: http://www.boiteaweb.fr
 Author: Julio Potier
 Infos: based on Jonathan Buttigieg project https://github.com/GeekPress/WP-BackUp/
-Version: 1.0
+Version: 1.1
 Tags: wordpress, security, admin, db
 License: GPL
 **********************************************/
@@ -56,25 +56,39 @@ function backup_db()
 	foreach ( $wpdb->tables() as $table ):
 		// The real query, it gets all data from tables
 		$table_data = $wpdb->get_results( 'SELECT * FROM ' . $table, ARRAY_A );
+		
 		$buffer .= '# Dump of table ' . $table . "\n";
 		$buffer .= "# ------------------------------------------------------------ \n\n";
 		$buffer .= 'DROP TABLE IF EXISTS ' . $table . ';';
 		// Query for "Create table"
 		$show_create_table = $wpdb->get_row( 'SHOW CREATE TABLE ' . $table, ARRAY_A );
 		$buffer .= "\n\n" . $show_create_table['Create Table'] . ";\n\n";
-		// Start to write the INSERT lines (1 per 50 data)
-		$buffer .= 'INSERT INTO ' . $table . ' VALUES' . "\n";
-		$mod = 0;
-		foreach ( $table_data as $row ):
-			$mod++;
-			$values = '(';
-		    foreach ( $row as $key => $value )
-			     $values .= '"' . $wpdb->escape( $value ) . '", ';
-		    $buffer .= trim( $values, ', ' );
-			$buffer .= $mod % 50 == 0 ? ');' . "\n" . 'INSERT INTO ' . $table . ' VALUES' : '),' . "\n";
-		endforeach;
-		$buffer .= ');';
-		$buffer .= "\n\n";
+		
+		if( $table_data ):
+			// Start to write the INSERT lines (1 per 50 data)
+			$buffer .= 'INSERT INTO ' . $table . ' VALUES' . "\n";
+			$mod = 0;
+			$i = 1;
+			$nb_data = count( $table_data );
+			foreach ( $table_data as $row ):
+				$mod++;
+				$values = '(';
+				foreach ( $row as $key => $value )
+					 $values .= '"' . $wpdb->escape( $value ) . '", ';
+				$buffer .= trim( $values, ', ' );
+				if( $i == $nb_data ) {
+					$to_end = ');';
+				}else{
+					$to_end = '),';
+				}
+				
+				$buffer .= $mod % 50 == 0 ? ');' . "\n" . 'INSERT INTO ' . $table . ' VALUES' : $to_end . "\n";
+				$i++;
+			endforeach;
+			// $buffer .= ');';
+			$buffer .= "\n\n";
+		
+		endif;
 		
 	endforeach;
 	// Put buffer content in file
